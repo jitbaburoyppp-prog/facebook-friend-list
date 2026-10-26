@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facebook Friend List</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  margin: 0;
+  padding: 20px;
+  color: #222;
+}
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+}
+h2 { color: #1877f2; }
+input, textarea, button {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+input, textarea {
+  border: 1px solid #ccc;
+}
+button {
+  border: 0;
+  background: #1877f2;
+  color: white;
+  font-weight: bold;
+}
+.secondary { background: #16834a; }
+.note { color: #666; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Facebook Friend List</h2>
+  <p>প্রোফাইলের লিংক এখানে দাও:</p>
+
+  <input id="profile"
+    type="url"
+    placeholder="https://www.facebook.com/...">
+
+  <button onclick="openProfile()">
+    প্রোফাইল খোলো
+  </button>
+
+  <hr>
+
+  <h3>ফ্রেন্ডদের নামের তালিকা</h3>
+  <p class="note">
+    যেসব নাম তুমি দেখতে ও সংগ্রহ করতে পারো,
+    সেগুলো প্রতি লাইনে একটি করে লেখো।
+  </p>
+
+  <textarea id="names" rows="8"
+    placeholder="নাম ১&#10;নাম ২&#10;নাম ৩"></textarea>
+
+  <button onclick="cleanNames()">
+    ডুপ্লিকেট নাম বাদ দাও
+  </button>
+
+  <button class="secondary" onclick="downloadCSV()">
+    CSV ফাইল ডাউনলোড
+  </button>
+
+  <p id="status" class="note">
+    এখনো কোনো তালিকা তৈরি হয়নি।
+  </p>
+</div>
+
+<script>
+function openProfile() {
+  const value = document.getElementById("profile").value.trim();
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    if (
+      url.protocol !== "https:" ||
+      !(host === "facebook.com" ||
+        host.endsWith(".facebook.com"))
+    ) {
+      alert("সঠিক Facebook HTTPS লিংক দাও।");
+      return;
+    }
+
+    window.open(url.href, "_blank", "noopener");
+  } catch {
+    alert("আগে একটি সঠিক Facebook লিংক দাও।");
+  }
+}
+
+function getNames() {
+  return document.getElementById("names").value
+    .split(/\r?\n/)
+    .map(name => name.trim())
+    .filter(Boolean);
+}
+
+function cleanNames() {
+  const names = getNames();
+  const unique = [...new Set(names)];
+  document.getElementById("names").value = unique.join("\n");
+  document.getElementById("status").textContent =
+    "মোট " + unique.length + "টি আলাদা নাম আছে।";
+}
+
+function downloadCSV() {
+  const names = getNames();
+
+  if (!names.length) {
+    alert("আগে নামের তালিকা লেখো।");
+    return;
+  }
+
+  const quote = text => '"' + text.replace(/"/g, '""') + '"';
+  const csv = "\uFEFFName\n" + names.map(quote).join("\n");
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = "facebook-friend-list.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+
+  document.getElementById("status").textContent =
+    names.length + "টি নামের CSV ফাইল তৈরি হয়েছে।";
+}
+</script>
+</body>
+</html>
