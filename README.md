@@ -1,2 +1,2 @@
-#Jit facebook-friend-list
+#facebook-friend-list
 My first website।
